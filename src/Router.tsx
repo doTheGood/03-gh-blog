@@ -1,12 +1,14 @@
 import { Route, Routes } from 'react-router-dom'
 import { DefaultLayout } from './layouts/DefaultLayout'
-import { Blog } from './pages/Blog'
+import { BlogPage } from './pages/BlogPage'
+import { PostPage } from './pages/PostPage'
 
 export function Router() {
   return (
     <Routes>
       <Route path="/" element={<DefaultLayout />}>
-        <Route path="/" element={<Blog />} />
+        <Route path="/" element={<BlogPage />} />
+        <Route path="/post/:id" element={<PostPage />} />
       </Route>
     </Routes>
   )
