@@ -3,35 +3,78 @@ import { faGithub } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { ExternalLink } from '../../../../components/ExternalLink'
 import { ProfileContainer, ProfileDetails, ProfilePicture } from './styles'
+import { useCallback, useEffect, useState } from 'react'
+import { api } from '../../../../lib/axios'
+import { Spinner } from '../../../../components/Spinner'
+
+const username = import.meta.env.VITE_GITHUB_USERNAME
+
+interface IProfileData {
+  login: string
+  bio: string
+  avatar_url: string
+  html_url: string
+  name: string
+  company?: string
+  followers: number
+}
 
 export function Profile() {
+  const [profileData, setProfileData] = useState<IProfileData>(
+    {} as IProfileData,
+  )
+  const [isLoading, setIsLoading] = useState(true)
+
+  const getProfileData = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const response = await api.get(`/users/${username}`)
+      setProfileData(response.data)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [profileData])
+
+  useEffect(() => {
+    getProfileData()
+  }, [])
+
   return (
     <ProfileContainer>
-      <ProfilePicture src="https://github.com/doTheGood.png" />
-      <ProfileDetails>
-        <header>
-          <h1>Dino Sauro</h1>
-          <ExternalLink text="GitHub" href="#" />
-        </header>
-        <p>
-          This is a nice description people. I really like it. This is a nice
-          description people. I really like it.
-        </p>
-        <ul>
-          <li>
-            <FontAwesomeIcon icon={faGithub} />
-            doTheGood
-          </li>
-          <li>
-            <FontAwesomeIcon icon={faBuilding} />
-            doTheGood
-          </li>
-          <li>
-            <FontAwesomeIcon icon={faUserGroup} />
-            13 seguidores
-          </li>
-        </ul>
-      </ProfileDetails>
+      {isLoading ? (
+        <Spinner />
+      ) : (
+        <>
+          <ProfilePicture src={profileData.avatar_url} />
+          <ProfileDetails>
+            <header>
+              <h1>{profileData.name}</h1>
+              <ExternalLink
+                text="GitHub"
+                href={profileData.html_url}
+                target="_blank"
+              />
+            </header>
+            <p>{profileData.bio}</p>
+            <ul>
+              <li>
+                <FontAwesomeIcon icon={faGithub} />
+                {profileData.login}
+              </li>
+              {profileData?.company && (
+                <li>
+                  <FontAwesomeIcon icon={faBuilding} />
+                  {profileData.company}
+                </li>
+              )}
+              <li>
+                <FontAwesomeIcon icon={faUserGroup} />
+                {profileData.followers} seguidores
+              </li>
+            </ul>
+          </ProfileDetails>
+        </>
+      )}
     </ProfileContainer>
   )
 }
